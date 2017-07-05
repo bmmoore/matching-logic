@@ -66,7 +66,7 @@ assumption.
 Qed.
 
 Lemma clos_cat'
-     : forall (A : Type) (R : relation A) (a : A) (s1 : bool) 
+     : forall (A : Type) (R : relation A) (a : A) (s1 : bool)
          (b : A) (s2 s3 : bool) (c : A),
        clos R s1 a b -> clos R s2 b c -> implb s3 (s1 || s2) = true -> clos R s3 a c.
 intros.
@@ -202,7 +202,7 @@ Lemma reach_later : forall i i', ix_rel i i' ->
                            P gamma -> state_reaches false i gamma P.
   Proof.
     holds_start; firstorder with holds_solve.
-  Qed.    
+  Qed.
 
   Lemma reach_step : forall i gamma (P : cfg -> Prop),
     (exists gamma', S gamma gamma') ->
@@ -241,7 +241,7 @@ Lemma reach_later : forall i i', ix_rel i i' ->
     specialize (H1 (exist _ x' (terminates_next t _ Hxx')) Hxx' Hx'x0).
     firstorder with holds_solve.
   Qed.
-        
+
 End ExReachability.
 
 Module ExPathSemantics := StateBasedSemantics ExReachability.
@@ -256,7 +256,7 @@ Lemma approx_holds env (phi phi' : formula cfg env) strict :
   holds strict phi phi'.
 intro H. unfold holds.
 intros.
-specialize (H (exist _ gamma H0) _ _ H1 (clos_refl _ _)). 
+specialize (H (exist _ gamma H0) _ _ H1 (clos_refl _ _)).
 firstorder.
 Qed.
 

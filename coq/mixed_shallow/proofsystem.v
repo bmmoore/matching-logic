@@ -42,7 +42,7 @@ Definition union_system (C : option system) (S : system) : system :=
     | Some S1 =>
       fun env0 X X0 => S1 env0 X X0 \/ S env0 X X0
   end.
-  
+
 Section FixTransition.
 Variable (S : cfg -> cfg -> Prop).
 
@@ -71,7 +71,7 @@ Inductive IS (C : option system) (A : system) : forall env,
        IS C A env phi phi' ->
        IS None (union_system C A) env phi' phi'' ->
        IS C A env phi phi''
-  | is_conseq : forall env 
+  | is_conseq : forall env
        (phi1 phi1' phi2 phi2' : formula env),
        (forall e g, phi1 e g -> phi1' e g) ->
        (forall e g, phi2 e g -> phi2' e g) ->
@@ -118,7 +118,7 @@ Inductive IS (C : option system) (A : system) : forall env,
 Definition relation_of_system (S : system) : cfg -> cfg -> Prop :=
   fun gamma gamma' =>
     exists env, exists (rho : env), exists phi, exists phi',
-       (S env phi phi') /\ phi rho gamma /\ phi' rho gamma'.           
+       (S env phi phi') /\ phi rho gamma /\ phi' rho gamma'.
 (* A system consisting of rules all of whose instances
    hold in exactly one step along some path *)
 Definition system_of_relation (R : cfg -> cfg -> Prop) : system :=
@@ -144,7 +144,7 @@ Hypothesis (Ssys_welldef :
                 (Ssys env phi phi' /\ phi e c1) ->
                 exists c2, phi' e c2).
 Hypothesis (Ssys_good :
-              forall c1 c2, S c1 c2 <-> 
+              forall c1 c2, S c1 c2 <->
                             exists env phi phi' e,
               (Ssys env phi phi' /\ phi e c1 /\ phi' e c2)).
 

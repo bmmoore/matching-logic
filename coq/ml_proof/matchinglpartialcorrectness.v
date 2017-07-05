@@ -9,8 +9,6 @@ Module MatchLPartialCorrectness(Base : ObjectLanguage).
 Module MatchLProofSystemBase := MatchLProofSystem Base.
 Export MatchLProofSystemBase.
 
-Require Import Arith.
-
 Proposition forall_in : forall T P l (e : T),
   List.In e l ->
   List.Forall P l ->

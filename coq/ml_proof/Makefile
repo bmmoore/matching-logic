@@ -5,6 +5,6 @@ distclean : clean
 .PHONY : all distclean
 
 coq_makefile.mk :
-	coq_makefile matchinglpartialcorrectness.v  reduction.v matchinglreduction.v matchinglproofsystem.v matchingl.v generic.v > $@
+	coq_makefile -f _CoqProject -o $@
 
 include coq_makefile.mk

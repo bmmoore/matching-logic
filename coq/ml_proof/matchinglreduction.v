@@ -3,6 +3,10 @@ Require Import matchingl.
 
 Require Import reduction.
 
+Require Relation_Definitions.
+Require Relation_Operators.
+
+
 Set Implicit Arguments.
 
 Module MatchLReduction(Base : ObjectLanguage).
@@ -31,8 +35,8 @@ Definition ts (s : System) (gamma : M) (gamma' : M) :=
   exists r : Rule, exists rho : Valuation,
     (s r /\ Satisfies gamma rho (fst r)  /\ Satisfies gamma' rho (snd r)).
 
-Require Import Relation_Definitions.
-Require Import Relation_Operators.
+Import Relation_Definitions.
+Import Relation_Operators.
 
 (*** SEMANTIC ENTAILMENT OF REWRITE RULES BY TRANSITION SYSTEM ***)
 

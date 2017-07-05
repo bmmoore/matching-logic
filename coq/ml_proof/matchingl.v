@@ -3,7 +3,7 @@ Module Type Terms.
   Parameter IsVariable : T -> Prop.
   Definition Var : Set := { x : T & (IsVariable x) }.
 (*
-  Parameter var_dec : forall x y : Var, {x = y} + {x <> y }. 
+  Parameter var_dec : forall x y : Var, {x = y} + {x <> y }.
  *)
   Parameter Substitution : Set. (* Var -> T *)
   Parameter identity : Substitution.
@@ -30,7 +30,7 @@ Module Type Formulas (Export Base : Terms).
 End Formulas.
 
 Module Type Model(Export Base : Terms).
-  
+
   Parameter M : Set.
 
   Parameter Valuation : Set. (* Var -> M *)

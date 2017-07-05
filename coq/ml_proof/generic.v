@@ -22,8 +22,6 @@ Fixpoint nth_error (A : Set) (l : list A) (ix : nat) : option A :=
    instantiation with McBride-style free names / bound indices
    representation.
 
-
-
    polymorphic version of formula indexed by number of
    dangling indices
  *)
@@ -83,7 +81,7 @@ Module GenericLang(Import Labels : Labels) <: ObjectLanguage.
       end.
   End GenericTerms.
 
-  Definition app_var rho v :=
+  Definition app_var rho (v:positive) :=
     match PositiveMap.find v rho with
       | Some t' => t'
       | None => TMVar v
@@ -105,7 +103,7 @@ Module GenericLang(Import Labels : Labels) <: ObjectLanguage.
     Definition Var := {t : T & IsVariable t}.
     Definition Var_var (v : Var) : positive :=
       match v with
-        | existT t pf =>
+        | existT _ t pf =>
           match t as t return IsVariable t -> positive with
             | TMVar v => fun _ => v
             | TApp _ _ => fun pf => match pf with end
@@ -113,7 +111,7 @@ Module GenericLang(Import Labels : Labels) <: ObjectLanguage.
       end.
     Definition Substitution := PositiveMap.t (Term positive).
     Definition identity := PositiveMap.empty (Term positive).
-    Definition app_var rho v :=
+    Definition app_var rho (v:positive) :=
       match PositiveMap.find v rho with
         | Some t' => t'
         | None => TMVar v
@@ -235,7 +233,7 @@ Module GenericLang(Import Labels : Labels) <: ObjectLanguage.
     Fixpoint opapply result args (vals : list (option M)) : optype args result -> option M :=
       match args as args, vals return optype args result -> option M with
         | nil, nil => fun f => Some (existT sort_sem result f)
-        | a :: args, Some (existT vsort vval) :: vals =>
+        | a :: args, Some (existT _ vsort vval) :: vals =>
           match sort_dec a vsort with
             | left aeqv =>
               match aeqv in _ = vsort return sort_sem vsort -> optype (a :: args) result -> option M with
@@ -263,7 +261,7 @@ Module GenericLang(Import Labels : Labels) <: ObjectLanguage.
       : option (sigT sort_sem) :=
       match t with
         | TMVar v =>
-          match v with
+          match v : TVar  with
             | VFree p => PositiveMap.find p defs
             | VBound ix => nth_error bound ix
           end

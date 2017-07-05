@@ -37,7 +37,7 @@ Lemma clos_left_trans (A : Type) (R : A -> A -> Prop)
   strict a b c :
   clos_left R strict a b -> clos_left R strict b c ->
   clos_left R strict a c.
-induction 1.  
+induction 1.
 auto.
 apply clos_left_ext. assumption.
 intros. specialize (IHclos_left H1).
@@ -46,7 +46,7 @@ Qed.
 
 Lemma clos_iff_left (A : Type) (R : A -> A -> Prop)
   strict a b : clos R strict a b <-> clos_left R strict a b.
-Proof.  
+Proof.
 split.
 induction 1.
 constructor.

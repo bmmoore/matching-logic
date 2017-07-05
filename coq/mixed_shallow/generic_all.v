@@ -60,23 +60,23 @@ Inductive ix_al_reach (P : cfg -> Prop) (c : cfg) : bool -> nat -> Prop :=
   .
 
 Lemma al_reach_unstrict P c n : ix_al_reach P c true n -> ix_al_reach P c false n.
-Proof. destruct 1;constructor (assumption). Qed.
+  Proof. destruct 1;constructor;assumption. Qed.
 
 Lemma al_reach_pred P c s n : ix_al_reach P c s (S n) -> ix_al_reach P c s n.
 remember (S n) as Sn eqn:HeqSn; intro H; revert n HeqSn; induction H.
 (* exhausted *)
 discriminate.
 (* here *)
-constructor (assumption).
+constructor;assumption.
 (* later *)
 intros.
 injection HeqSn;clear HeqSn;intro HeqSn.
-destruct n0;constructor(auto).
+destruct n0;constructor;auto.
 Qed.
 
 Lemma al_reach_impl (P Q : cfg -> Prop) : (forall c, P c -> Q c) -> forall c s n,
                             ix_al_reach P c s n -> ix_al_reach Q c s n.
-induction 2;constructor(auto).
+induction 2;constructor;auto.
 Qed.
 
 Require Import Arith.
@@ -85,7 +85,7 @@ Lemma min_half_suc (P : nat -> Prop) n m :
   P (S (min n m)) -> P (min n m) -> P (min (S n) m).
 Proof.
   destruct (le_lt_dec m n);
-  rewrite ?Min.min_r, ?Min.min_l by (auto using le_S, le_Sn_le);
+  rewrite ?Nat.min_r, ?Nat.min_l by (auto using le_S, le_Sn_le);
   trivial.
 Qed.
 
@@ -94,22 +94,22 @@ Lemma al_reach_join P c s1 n1 s2 n2 :
   -> ix_al_reach P c s1 (min n1 (if s1 then S n2 else n2)).
 induction 1.
 + (* Exhausted *)
-  rewrite Min.min_0_l.
+  rewrite Nat.min_0_l.
   constructor.
 + (* Here *)
-  assert (min n n2 <= n2) by auto with arith.
+  assert (min n n2 <= n2) by apply Nat.le_min_r.
   revert H0; generalize (min n n2); intros n0 Hle.
   induction Hle.
   destruct s2;auto using al_reach_unstrict.
   auto using al_reach_pred.
 + (* Later *)
-  assert (ix_al_reach P c s (S (min n n2))) as IH by constructor (assumption).
+  assert (ix_al_reach P c s (S (min n n2))) as IH by (constructor;assumption).
   clear -IH.
   destruct s.
   assumption.
   pose proof (al_reach_pred IH).
   apply min_half_suc; assumption.
-Qed.  
+Qed.
 
 Module AllPathSemantics <: ReachabilitySemantics.
 
@@ -251,7 +251,7 @@ unfold holds in H0.
 apply (al_reach_impl _ (H0 rho)) in H.
 clear -H.
 apply al_reach_join in H.
-rewrite Min.min_idempotent in H;assumption.
+rewrite Nat.min_idempotent in H;assumption.
 Qed.
 
 Lemma holds_trans_strict : forall env phi phi' phi'' i,
@@ -264,7 +264,7 @@ constructor.
 apply (al_reach_impl _ (H0 _ (eq_refl _) rho)) in H.
 clear -H.
 apply al_reach_join in H.
-rewrite Min.min_idempotent in H;assumption.
+rewrite Nat.min_idempotent in H;assumption.
 Qed.
 
 Definition cfg := cfg.
@@ -285,12 +285,12 @@ Inductive closed_path (start : cfg) : Set :=
 Fixpoint path_length c (path : closed_path c) : nat :=
   match path with
     | path_end _ => 0
-    | path_step _ _ rest => 1 + path_length rest
+    | path_step _ rest => 1 + path_length rest
   end.
 Definition drop1 c (path : closed_path c) : {c' : cfg & closed_path c'} :=
   match path with
     | path_end final => existT _ c (path_end final)
-    | path_step c' _ rest => existT _ c' rest
+    | @path_step _ c' _ rest => existT _ c' rest
   end.
 Lemma drop_rebuild c (path : closed_path c) : path_length path <> 0 ->
    exists step : SF c (projT1 (drop1 path)), path = path_step step (projT2 (drop1 path)).
@@ -311,7 +311,7 @@ Inductive InPath c : forall c', closed_path c' -> Set :=
 Fixpoint tail_at c c' (path : closed_path c') (pf : InPath c path) : closed_path c :=
   match pf with
     | in_here p => p
-    | in_later _ _ _ _ pf' => tail_at pf'
+    | in_later _ pf' => tail_at pf'
   end.
 
 Lemma tail_len c c' (path : closed_path c') (pf : InPath c path) :
@@ -345,7 +345,7 @@ destruct H2.
 destruct x.
 simpl in e.
 subst p'.
-constructor (assumption).
+constructor;assumption.
 Qed.
 
 Lemma path_reach_approx P (P_dec : forall c, P c \/ ~P c) (stuck_dec : StuckDecidable) :

@@ -36,7 +36,7 @@ Inductive PS (strict : bool) : System -> Formula -> Formula -> Prop :=
   PS strict A phi phi' ->
   patternless psi ->
   PS strict A (And phi psi) (And phi' psi)
-| ps_conseq : 
+| ps_conseq :
   forall A : System, forall phi1 phi1' phi2 phi2' : Formula,
   Valid (Implies phi1 phi1') ->
   PS strict A phi1' phi2' ->
