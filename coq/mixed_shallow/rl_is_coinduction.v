@@ -21,6 +21,11 @@ Definition interp (C : option (system cfg)) (A : system cfg)
   forall x P, claims_of_rule env l r x P ->
               step R (trans R X) x P.
 
+Ltac assert_arg H :=
+  match type of H with
+  | ?T -> _ => let HT := fresh "HT" in assert T as HT;[|specialize (H HT);clear HT]
+  end.
+
 Lemma rl_to_coinduction: forall C A env (l r : formula cfg env) (X : Spec cfg)
     (H_A: forall x P, claims_of_system A x P ->
            (match C with None => reaches R x P \/ X x P
@@ -33,26 +38,23 @@ Lemma rl_to_coinduction: forall C A env (l r : formula cfg env) (X : Spec cfg)
       | Some _ => next R (trans R X) x P
     end.
 Proof.
-  intros until 2;induction 1;destruct 1 as (rho & ? & ?).
+  intros until 2;induction 1;destruct 1 as (rho & ? & ?);
+        repeat match goal with | [H : _ |- _] => specialize (H H_A H_C) end.
   + (* is_step *)
     destruct (H _ _ H0) as [[]].
     assert (P x0) by auto.
     destruct C;eauto using next, trans.
   + (* is_axiom *)
     intros.
-    assert (claims_of_system A x P) by do 7 (eassumption || esplit).
-    apply H_A in H2.
-    destruct C;destruct H2;eauto using next,trans.
+    specialize (H_A x P).
+    assert_arg H_A.
+    do 7 (eassumption || esplit).
+    destruct C;destruct H_A;eauto using next,trans.
   + (* is_refl *)
     destruct C;[destruct H|auto using ddone].
   + (* is_trans *)
     clear H H0.
-    specialize (IHIS1 H_A H_C).
     specialize (IHIS1 x (phi' rho)).
-    Ltac assert_arg H :=
-      match type of H with
-      | ?T -> _ => let HT := fresh "HT" in assert T as HT;[|specialize (H HT);clear HT]
-      end.
     assert_arg IHIS1.
     eexists;esplit;[eassumption|]. trivial.
     assert_arg IHIS2.
@@ -79,23 +81,19 @@ Proof.
     intros. apply IHIS2.
     repeat (eassumption || esplit).
   + (* is_conseq *)
-    specialize (IHIS H_A H_C).
     apply H in H2. clear H.
     apply IHIS.
     repeat (eassumption || esplit).
     eauto.
   + (* is_case *)
-    repeat match goal with | [H : _ |- _] => specialize (H H_A H_C) end.
     destruct H1.
     apply IHIS1;repeat (eassumption || esplit).
     apply IHIS2;repeat (eassumption || esplit).
   + (* is_abstr *)
-    repeat match goal with | [H : _ |- _] => specialize (H H_A H_C) end.
     destruct H0.
     apply IHIS.
     repeat (eassumption || esplit).
   + (* is_abstr' *)
-    repeat match goal with | [H : _ |- _] => specialize (H H_A H_C) end.
     apply IHIS.
     destruct H1.
     specialize (H rho x0).
@@ -105,11 +103,9 @@ Proof.
   + (* is_circ *)
     admit. (* not allowed in set circularity proofs *)
   + (* is_subst *)
-    repeat match goal with | [H : _ |- _] => specialize (H H_A H_C) end.
     apply IHIS.
     repeat (eassumption || esplit).
   + (* is_lf *)
-    repeat match goal with | [H : _ |- _] => specialize (H H_A H_C) end.
     apply IHIS.
     destruct H0.
     repeat (eassumption || esplit).
