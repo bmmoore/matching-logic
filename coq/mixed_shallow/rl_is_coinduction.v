@@ -124,4 +124,106 @@ eapply rl_to_coinduction with (C:=Some C) (X:=claims_of_system C);
 try eassumption.
 trivial.
 Qed.
+
+Require generic_ex.
+Import reduction.
+
+Section TerminationLEM.
+(* Because the soundness proof mentions termination in various definitions,
+   to show equivalence with our definitions in Coq's constructive logic
+   we need to assume excluded middle for termination.
+ *)
+  Parameter term_EM: forall x, terminates x R \/ ~terminates x R.
+
+  Parameter term_next_EM: forall x,
+           (exists x', R x x' /\ ~ terminates x' R)
+      \/ ~ (exists x', R x x' /\ ~ terminates x' R).
+
+  CoInductive diverges x : Prop :=
+    d_step : forall x', R x x' -> diverges x' -> diverges x.
+
+  Lemma nonterm_diverges : forall x, ~terminates x R -> diverges x.
+    cofix.
+    intros.
+    destruct (term_next_EM x).
+    destruct H0 as (x' & Hstep & Hx').
+    * apply (d_step _ x' Hstep). apply nonterm_diverges. assumption.
+    * contradict H. constructor.
+      intros. fold (terminates y R).
+      destruct (term_EM y). assumption.
+      contradict H0. exists y. split;assumption.
+  Qed.
+
+  Lemma diverge_reaches : forall x, diverges x -> forall P, reaches R x P.
+    intros. revert x H. cofix.
+    destruct 1. apply (rstep H). apply diverge_reaches;assumption.
+  Qed.
+
+  Lemma clos_reaches : forall b x x', clos R b x x' -> forall (P : cfg -> Prop), P x' -> reaches R x P.
+    intros. apply clos_iff_left in H.
+    revert x H. induction 1;eauto using reaches.
+  Qed.
+
+  Lemma term_reaches_clos : forall x P, terminates x R -> reaches R x P
+                                        -> exists x', P x' /\ clos R false x x'.
+    induction 1;destruct 1.
+    exists x. split. assumption. constructor.
+    specialize (H0 _ H1 H2).
+    destruct H0 as (x' & Hx' & Hpath).
+    exists x'. split. assumption. eauto using clos.
+  Qed.
+
+  Lemma rule_faithfulness:
+  forall b env (l r : formula cfg env),
+    ((generic_ex.holds R b l r)
+     <-> (forall x P, claims_of_rule _ l r x P -> (if b then next R else id) (reaches R) x P)).
+  unfold generic_ex.holds, claims_of_rule. split;intros.
+  * (* forward direction *)
+    destruct H0 as (e & ? & ?).
+    specialize (H e x).
+    destruct (term_EM x).
+    + (* terminates *) specialize (H H2 H0). destruct H as (gamma' & Hr & Hpath).
+    apply H1 in Hr.
+    destruct b.
+    apply clos_iff_left in Hpath.
+    inversion Hpath;subst;(econstructor;[eassumption|]).
+      eauto using reaches.
+      apply clos_iff_left in H3. eauto using clos_reaches.
+    unfold id;simpl. eauto using clos_reaches.
+    + (* diverges *)
+      clear -H2.
+      apply nonterm_diverges in H2. destruct H2.
+      destruct b;(econstructor;[eassumption|]);auto using diverge_reaches.
+  * (* reverse direction *)
+    specialize (H gamma (r rho)).
+    lapply H;[|solve[eauto]].
+    intros.
+    destruct b.
+    - destruct H2.
+      apply term_reaches_clos in H3.
+      destruct H3 as (gamma' & Hgamma' & Hpath).
+      exists gamma'. split. assumption.
+        eapply clos_cons_lt;eauto using clos.
+        destruct H0. apply H0. assumption.
+    - unfold id in H2.
+      apply term_reaches_clos in H2. assumption.
+      assumption.
+  Qed.
+
+  Theorem system_faithfulness:
+  forall A, generic_ex.system_holds R A
+            <-> (forall x P, claims_of_system A x P -> next R (reaches R) x P).
+    unfold generic_ex.system_holds, claims_of_system.
+    split;intros.
+    *
+      destruct H0 as (env & l & r & Hrule & ?).
+      specialize (H _ _ _ Hrule).
+      pose proof (proj1 (rule_faithfulness true env l r)).
+      specialize (H1 H). auto.
+    *
+      apply rule_faithfulness. intros.
+      apply H;clear H. eauto.
+  Qed.
+
+End TerminationLEM.
 End Semantics.

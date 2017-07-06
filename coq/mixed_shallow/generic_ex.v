@@ -247,13 +247,13 @@ End ExReachability.
 Module ExPathSemantics := StateBasedSemantics ExReachability.
 Module ExPathSoundness := Soundness ExPathSemantics.
 
-Definition holds strict env (phi phi' : formula cfg env) :=
+Definition holds cfg S strict env (phi phi' : formula cfg env) :=
   forall rho gamma, terminates gamma S ->
     phi rho gamma -> exists gamma', phi' rho gamma' /\ clos S strict gamma gamma'.
 
 Lemma approx_holds env (phi phi' : formula cfg env) strict :
   (forall i, ExPathSemantics.holds strict phi phi' i) ->
-  holds strict phi phi'.
+  holds S strict phi phi'.
 intro H. unfold holds.
 intros.
 specialize (H (exist _ gamma H0) _ _ H1 (clos_refl _ _)).
@@ -261,7 +261,7 @@ firstorder.
 Qed.
 
 Lemma holds_approx env (phi phi' : formula cfg env) strict :
-  holds strict phi phi' ->
+  holds S strict phi phi' ->
   (forall i, ExPathSemantics.holds strict phi phi' i).
 intros Hstrong i.
 destruct i as [gamma term].
@@ -271,13 +271,13 @@ specialize (Hstrong _ gamma1 (terminates_fwd term Hreach) Hphi).
 firstorder.
 Qed.
 
-Definition system_holds (A : system cfg) :=
-  forall env phi1 phi2, @A env phi1 phi2 -> holds true phi1 phi2.
+Definition system_holds cfg S (A : system cfg) :=
+  forall env phi1 phi2, @A env phi1 phi2 -> holds S true phi1 phi2.
 
 Theorem soundness (A : system cfg) env (phi1 phi2 : formula cfg env) :
   IS cfg S None A env phi1 phi2 ->
-  system_holds A ->
-  holds false phi1 phi2.
+  system_holds S A ->
+  holds S false phi1 phi2.
 Proof.
 intros pf HA.
 apply approx_holds.
